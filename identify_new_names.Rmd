@@ -1,0 +1,184 @@
+---
+title: "identify_new_names"
+author: "Bradley Wingxopher Zhang"
+date: "2019/9/21"
+output: html_document
+---
+
+```{r include_libraries, include=FALSE}
+rm(list = ls())
+library(readr)
+library(Rwordseg)
+library(jiebaR)
+library(jiebaRD)
+library(dplyr)
+```
+
+```{r import_train_data, include=TRUE, message=FALSE}
+train.data<-read.csv("D:/0Current/An_Introduction_to_Data_Science/New_Names/Round2/raw_statistics/Round2_train.csv")
+View(train.data)
+```
+
+```{r train.data.seg.entities, include=FALSE}
+train.data.seg.entities <- list()
+for (i in 1:nrow(train.data)) {
+  train.data.seg.entities[[i]]<- unlist(strsplit(train.data[[4]][i],split = ";"))
+}
+```
+
+```{r initialize_engine;engine.key}
+engine <- worker(type = "tag", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8")
+#engine.mp <- worker(type = "mp", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8")
+engine.key <- worker("keywords", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8",topn=5)
+engine.hmm <- worker(type = "hmm", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8")
+engine.simhash <- worker(type = "simhash", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8", topn = 3)
+```
+
+```{r analyze_names}
+nametags.list <- list()
+k <- 1
+for (i in 1:length(train.data.seg.entities)) {
+  for (j in 1:length(train.data.seg.entities[[i]])) {
+    if(!is.na(train.data.seg.entities[[i]][1])){
+      nametags.list[[k]] <- engine[train.data.seg.entities[[i]][j]]
+      k <- k + 1
+    }
+  }
+}
+View(nametags.list)
+nametags <- list()
+k <- 1
+for(i in 1:length(nametags.list)){
+  nametags[[k]] <- names(nametags.list[[i]])
+  k <- k + 1
+}
+View(nametags)
+name.vector <- vector(mode = "character", length = length(nametags))
+for(i in 1:length(nametags)){
+  name.vector[i] <- paste(nametags[[i]],sep = ",",collapse = ",")
+}
+View(name.vector)
+summary(factor(name.vector))
+#train.data$text[[4]]
+```
+
+```{r entities_frequency}
+```
+
+```{r user_dictionary,eval=FALSE}
+for (i in 1:length(train.data.seg.entities)) {
+  for (j in 1:length(train.data.seg.entities[[i]])) {
+    if(!is.na(train.data.seg.entities[[i]][j])) {
+    write_csv(as.data.frame(paste(train.data.seg.entities[[i]][j],"nt")),"D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict.utf8",append = TRUE, col_names = FALSE)
+    }
+  }
+}
+```
+
+```{r teach_engine_entities_words, eval=FALSE}
+#for (i in 1:length(train.data.seg.entities)) {
+#  for(j in 1:length(train.data.seg.entities[[i]])){
+#    new_user_word(engine, #train.data.seg.entities[[i]][j], "n")
+#  }
+#}
+```
+
+```{r initialize_train.data.seg.title, include=FALSE}
+train.data.seg.title <- list()
+for (i in 1:nrow(train.data)) {
+  train.data.seg.title[[i]]<- segment(train.data$title[i], engine)
+}
+#View(train.data.seg.title)
+```
+
+```{r initialize_train.data.seg.text, include=FALSE}
+train.data.seg.text <- list()
+for (i in 1:nrow(train.data)) {
+  train.data.seg.text[[i]]<- segment(train.data$text[i],engine)
+}
+```
+
+```{r teach_engine.key_entities_words, eval=FALSE, error=TRUE}
+#for (i in 1:length(train.data.seg.entities)) {
+# for(j in 1:length(train.data.seg.entities[[i]])){
+#    new_user_word(engine.key, #train.data.seg.entities[[i]][j], "n")
+#  }
+#}
+```
+
+```{r initialize_train.data.seg.title.key, include=FALSE}
+train.data.seg.title.key <- list()
+for (i in 1:nrow(train.data)) {
+  train.data.seg.title.key[[i]]<- engine.key[train.data$title[i]]
+}
+#engine.key["广州开发区金融控股集团X有限公司广州的广州开发区的广州开发区的金融的广州的开发区的金融控股公司是一个很好的上市公司"]
+#engine.key[train.data$text[[3]]]
+```
+
+```{r initialize_train.data.seg.text.key, include=FALSE}
+train.data.seg.text.key <- list()
+for (i in 1:nrow(train.data)) {
+  train.data.seg.text.key[[i]]<- segment(train.data$text[i],engine.key)
+}
+```
+
+```{r mean_length_of_names;Dirty_data}
+s <- array()
+s[0]<-0
+k<-0
+for(i in 1:length(train.data.seg.entities)){
+  for(j in 1:length(train.data.seg.entities[[i]])){
+    if(!is.na(train.data.seg.entities[[i]][1])){
+      s[k]<-nchar(train.data.seg.entities[[i]][j])
+      k <- k+1
+    }
+  }
+}
+summary(s)
+for(i in 1:length(train.data.seg.entities)){
+  for(j in 1:length(train.data.seg.entities[[i]])){
+    if(!is.na(train.data.seg.entities[[i]][1])&nchar(train.data.seg.entities[[i]][j])>20){
+      print(train.data.seg.entities[[i]][j])
+      print(i)
+      j
+    }
+  }
+}
+```
+
+
+
+
+```{r}
+unknownEntities.list <- list()
+```
+
+
+
+```{r get_(x,brad)_from_text;append_is_TRUE, eval=TRUE}
+for(i in 1:length(train.data.seg.text)){
+  unknownEntities.list[[i]] <- vector(mode = "character")
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(train.data.seg.text[[i]])
+  leng <- length(train.data.seg.text[[i]])-1
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="x" & n[[j+1]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(train.data.seg.text[[i]][j],train.data.seg.text[[i]][j+1],collapse="",sep="")
+        k <- k + 1
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+n <- 0
+for(i in 1:length(unknownEntities.list))
+{
+  n <- n+length(unknownEntities.list[[i]])
+}
+n
+```

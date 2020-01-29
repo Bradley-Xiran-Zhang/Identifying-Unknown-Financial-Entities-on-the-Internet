@@ -1,0 +1,125 @@
+---
+title: "rate"
+author: "Bradley Wingxopher Zhang"
+date: "2019/9/25"
+output: html_document
+---
+
+```{r include_libraries, include=FALSE}
+rm(list = ls())
+library(readr)
+library(Rwordseg)
+library(jiebaR)
+library(jiebaRD)
+library(dplyr)
+```
+
+```{r import_train_data, include=TRUE, message=FALSE}
+train.data<-read.csv("D:/0Current/An_Introduction_to_Data_Science/New_Names/Round2/raw_statistics/Round2_train.csv", stringsAsFactors = FALSE)
+View(train.data)
+```
+
+```{r train.data.seg.entities, include=FALSE}
+train.data.seg.entities <- list()
+for (i in 1:nrow(train.data)) {
+  if(!is.na(train.data[[4]][i])){
+  train.data.seg.entities[[i]]<- unlist(strsplit(train.data[[4]][i], split = ";"))
+  }
+}
+```
+
+```{r initialize_engine;engine.key}
+engine <- worker(type = "tag", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict_brad_eng_num.utf8")
+#engine.mp <- worker(type = "mp", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8")
+#engine.key <- worker("keywords", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8",topn=5)
+#engine.hmm <- worker(type = "hmm", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8")
+#engine.simhash <- worker(type = "simhash", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8", topn = 3)
+```
+
+
+```{r analyze_names}
+nametags.list <- list()
+k <- 1
+for (i in 1:length(train.data.seg.entities)) {
+  for (j in 1:length(train.data.seg.entities[[i]])) {
+    if(!is.na(train.data.seg.entities[[i]][1])){
+      nametags.list[[k]] <- engine[train.data.seg.entities[[i]][j]]
+      k <- k + 1
+    }
+  }
+}
+#View(nametags.list)
+nametags <- list()
+k <- 1
+for(i in 1:length(nametags.list)){
+  nametags[[k]] <- names(nametags.list[[i]])
+  k <- k + 1
+}
+#View(nametags)
+name.vector <- vector(mode = "character", length = length(nametags))
+for(i in 1:length(nametags)){
+  name.vector[i] <- paste(nametags[[i]],sep = ",",collapse = ",")
+}
+#View(name.vector)
+rate.vec.total <- unlist(summary(factor(name.vector)))
+#train.data$text[[4]]
+```
+
+```{r initialize_train.data.seg.title, include=FALSE}
+train.data.seg.title <- list()
+for (i in 1:nrow(train.data)) {
+  train.data.seg.title[[i]]<- segment(train.data$title[i], engine)
+}
+#View(train.data.seg.title)
+```
+
+```{r initialize_train.data.seg.text, include=FALSE}
+train.data.seg.text <- list()
+for (i in 1:nrow(train.data)) {
+  train.data.seg.text[[i]]<- segment(train.data$text[i],engine)
+}
+```
+
+```{r get_(x,brad)_from_text;append_is_TRUE, eval=TRUE}
+nombre <- vector("numeric")
+#range.ctg <- c(1:6,8,10,11,13,16,17,19,21:28,30:50,53:59,61:99)
+for (ctg in 1:99) {
+  total.list <- list()
+  nom <- unlist(strsplit(names(rate.vec.total[ctg]),","))
+  nom
+  for(i in 1:length(train.data.seg.text)){
+    total.list[[i]] <- vector(mode = "character")
+    #len <- length(total.list[[i]])
+    k <- 1
+    #if(len==0){
+      #total.list[[i]] <- vector(mode = "character")
+    #}
+    n <- names(train.data.seg.text[[i]])
+    leng <- length(train.data.seg.text[[i]])-length(nom)+1
+    if(leng>=length(nom)){
+      for(j in 1:leng){
+        if(identical(n[j:(j+length(nom)-1)],nom)){
+          total.list[[i]][k] <- paste(train.data.seg.text[[i]][j:(j+length(nom)-1)], 
+                                          collapse="", 
+                                          sep="")
+          k <- k + 1
+        }
+      }
+    }
+    total.list[[i]] <- unique(total.list[[i]])
+  }
+  total.list
+  nombre[ctg] <- 0
+  for(s in 1:length(total.list))
+  {
+    nombre[ctg] <- nombre[ctg] + length(total.list[[s]])
+  }
+}
+rate <- rate.vec.total / nombre
+#for(l in c(7,9,12,14,15,18,20,29,51,52,60,100)){
+#  rate[l] <- -100
+#}
+View(nombre)
+View(rate.vec.total)
+View(rate)
+```

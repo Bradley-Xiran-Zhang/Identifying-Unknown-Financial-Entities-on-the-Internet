@@ -1,0 +1,204 @@
+---
+title: "Give it a wash"
+author: "Bradley Wingxopher Zhang"
+date: "2019/10/21"
+output: html_document
+---
+```{r}
+library(readr)
+BEST <- read_csv("BEST.csv")
+#list(BEST)
+#View(BEST)
+data <- read_csv("final_fight_of_Alan's_algorithm_FINAL.csv")
+#BEST <- as.vector(na.omit(BEST$unknownEntities))
+#BEST.vec <- unlist(strsplit(BEST, split=";"))
+BEST.split <- strsplit(BEST, split=";")
+#length(BEST.vec)
+#length(unique(BEST.vec))
+#length(BEST.vec[which(duplicated(BEST.vec))])
+```
+
+```{r}
+rm(list = ls())
+library(readr)
+BEST <- read_csv("D:/0Current/An_Introduction_to_Data_Science/New_Names/Round2/raw_statistics/R2-final_fight_of_Alan's_algorithm_FINAL.csv")
+id <- BEST$id
+#View(BEST)
+UNEN <- strsplit(BEST$unknownEntities, split=";")
+#list(BEST)
+#View(BEST)
+#data <- read_csv("final_fight_of_Alan's_algorithm_FINAL.csv")
+#BEST <- as.vector(na.omit(BEST$unknownEntities))
+for(i in 1:length(UNEN)){
+  j <- 1
+  if(!is.na(UNEN[[i]][1])){
+    BEST.vec <- unlist(strsplit(na.omit(BEST$unknownEntities[c(1:(i-1),i+1:length(UNEN))]), split=";"))
+    while(j <= length(UNEN[[i]])){
+      if(UNEN[[i]][j]=="莱特币" | UNEN[[i]][j]=="雷达币" | UNEN[[i]][j]=="宜人贷"){
+        j <- j + 1
+      }else if(nchar(UNEN[[i]][j])<=1){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(grepl(' ', UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(grepl('　', UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(grepl('\t', UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(grepl("<", UNEN[[i]][j]) | grepl(">", UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(grepl("的", UNEN[[i]][j]) | 
+               grepl("呢", UNEN[[i]][j]) | 
+               grepl("了", UNEN[[i]][j]) | 
+               grepl("吗", UNEN[[i]][j]) | 
+               grepl("不", UNEN[[i]][j]) | 
+               grepl("这", UNEN[[i]][j]) | 
+               grepl("是", UNEN[[i]][j]) | 
+               grepl("谁", UNEN[[i]][j]) | 
+               grepl("此", UNEN[[i]][j]) | 
+               grepl("于", UNEN[[i]][j]) | 
+               grepl("只", UNEN[[i]][j]) | 
+               grepl("又", UNEN[[i]][j]) | 
+               grepl("着", UNEN[[i]][j]) |
+               grepl("者", UNEN[[i]][j]) | 
+               grepl("我", UNEN[[i]][j]) | 
+               grepl("几", UNEN[[i]][j]) | 
+               grepl("普通", UNEN[[i]][j]) | 
+               grepl("第一", UNEN[[i]][j]) | 
+               grepl("第二", UNEN[[i]][j]) | 
+               grepl("哈希", UNEN[[i]][j]) | 
+               grepl("比特币", UNEN[[i]][j]) | 
+               grepl("老师", UNEN[[i]][j]) | 
+               grepl("师兄", UNEN[[i]][j]) | 
+               grepl("师姐", UNEN[[i]][j]) | 
+               grepl("白手起家创业", UNEN[[i]][j]) | 
+               grepl("产品", UNEN[[i]][j]) | 
+               grepl("女士", UNEN[[i]][j]) | 
+               grepl("并", UNEN[[i]][j]) | 
+               grepl("人员", UNEN[[i]][j]) | 
+               grepl("㎡", UNEN[[i]][j]) | 
+               grepl("", UNEN[[i]][j]) | 
+               grepl("某", UNEN[[i]][j]) | 
+               grepl("曝", UNEN[[i]][j]) | 
+               grepl("入", UNEN[[i]][j]) | 
+               grepl("多少", UNEN[[i]][j]) | 
+               grepl("十传百百传千", UNEN[[i]][j]) | 
+               grepl("返", UNEN[[i]][j]) | 
+               grepl("阿里", UNEN[[i]][j]) | 
+               grepl("腾讯", UNEN[[i]][j]) | 
+               grepl("百度", UNEN[[i]][j]) | 
+               grepl("淘宝", UNEN[[i]][j]) | 
+               grepl("微信", UNEN[[i]][j]) | 
+               grepl("搜狗", UNEN[[i]][j]) | 
+               grepl("新浪", UNEN[[i]][j]) | 
+               grepl("网易", UNEN[[i]][j]) | 
+               grepl("谷歌", UNEN[[i]][j]) | 
+               grepl("支付宝", UNEN[[i]][j]) | 
+               grepl("搜狐", UNEN[[i]][j]) | 
+               grepl("日本", UNEN[[i]][j]) | 
+               grepl("日报", UNEN[[i]][j]) | 
+               grepl("日文", UNEN[[i]][j]) | 
+               grepl("指数", UNEN[[i]][j]) | 
+               grepl("恒指", UNEN[[i]][j]) | 
+               grepl("会长", UNEN[[i]][j]) | 
+               grepl("地区", UNEN[[i]][j]) | 
+               grepl("马云", UNEN[[i]][j]) | 
+               grepl("马化腾", UNEN[[i]][j]) | 
+               grepl("各", UNEN[[i]][j]) | 
+               grepl("银行", UNEN[[i]][j]) | 
+               grepl("阿里", UNEN[[i]][j])
+               ){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(UNEN[[i]][j]!="睿先生" & grepl("先生", UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(UNEN[[i]][j]!="畅聊天下" & grepl("聊天", UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(UNEN[[i]][j]!="大族激光" & grepl("族", UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(UNEN[[i]][j]!="举个栗子" & grepl("个", UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if(UNEN[[i]][j]!="广州市众一网络科技有限公司" & 
+               UNEN[[i]][j]!="企一网" &
+               UNEN[[i]][j]!="瑞一科技" &
+               UNEN[[i]][j]!="新一贷" &
+               UNEN[[i]][j]!="众一网" &
+               grepl("一", UNEN[[i]][j])){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else if((length(which(BEST.vec==UNEN[[i]][j]))< -1 | length(which(BEST.vec==UNEN[[i]][j]))>18) & 
+         UNEN[[i]][j]!="鼎诚创投" & 
+         UNEN[[i]][j]!="熊猫投资"){
+        UNEN[[i]] <- UNEN[[i]][-j]
+      }else{
+        j <- j + 1
+      }
+    }
+  }
+}
+delete <- vector(mode = "character")
+k<-1
+for(i in 1:length(BEST$unknownEntities)){
+  if(!is.na(BEST$unknownEntities[[i]][1])){
+    vec <- unlist(strsplit(BEST$unknownEntities[[i]][1],split=";"))
+    for(j in 1:length(vec)){
+      if(!(vec[j] %in% UNEN[[i]])){
+        delete[k] <- vec[j]
+        k<-k+1
+      }
+    }
+  }
+}
+aa<-as.data.frame(table(delete))
+sum(as.numeric(aa[[2]]))
+View(aa)
+#View(UNEN)
+#nchar(strsplit(BEST$unknownEntities[605],split = ";")[[1]][9])
+#strsplit(BEST$unknownEntities[605],split = ";")[[1]][9]
+#grepl('\b',strsplit(BEST$unknownEntities[605],split = ";")[[1]][9])
+```
+
+```{R}
+OUT <- data.frame(id=character(length = length(BEST$id)), unknownEntities=character(length = length(BEST$unknownEntities)), stringsAsFactors = FALSE)
+OUT$id <- BEST$id
+for (i in 1:length(UNEN)) {
+  if(!is.na(UNEN[[i]][1])){
+    OUT$unknownEntities[i] <- paste(UNEN[[i]], collapse = ";")
+  }
+}
+length(OUT$unknownEntities[OUT$unknownEntities==""])
+write.csv(OUT, "NEW_BESTadjusted_morein.csv", na = "", row.names = FALSE)
+```
+
+```{r}
+UNEN.vec <- unlist(UNEN)
+res.U <- table(UNEN.vec)
+View(res.U)
+```
+
+```{r}
+BEST.vec <- unlist(strsplit(na.omit(BEST$unknownEntities), split=";"))
+res <- table(BEST.vec)
+View(res)
+```
+
+```{r}
+#observe <- cbind(BEST$unknownEntities,UNEN)
+View(observe)
+BEST.vec <- unlist(strsplit(na.omit(BEST$unknownEntities), split=";"))
+head(BEST.vec)
+#BEST.split <- strsplit(BEST, split=";")
+#length(BEST.vec)
+#length(unique(BEST.vec))
+#length(BEST.vec[which(duplicated(BEST.vec))])
+```
+
+```{r}
+oo <- unlist(strsplit(na.omit(unlist(UNEN)), split=";"))
+ooo <- unlist(strsplit(oo, split=""))
+res.ooo <- table(ooo)
+View(res.ooo)
+```
+
+```{r}
+oo <- unlist(strsplit(na.omit(unlist(BEST$unknownEntities)), split=";"))
+res.ooo <- table(oo)
+View(res.ooo)
+```

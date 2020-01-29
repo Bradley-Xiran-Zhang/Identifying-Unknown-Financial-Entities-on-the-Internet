@@ -1,0 +1,172 @@
+---
+title: "final_fight_of_Alan's_algorithm"
+author: "Bradley Wingxopher Zhang"
+date: "2019/9/25"
+output: html_document
+---
+
+```{r include_libraries, include=FALSE}
+rm(list = ls())
+library(readr)
+library(Rwordseg)
+library(jiebaR)
+library(jiebaRD)
+library(dplyr)
+```
+
+```{r}
+#order.ctg <- c("l,q,brad","g,nr,brad","n,e,brad","nz,ng","nrt,brad","ns,x,n,brad,brad","alp,alp,alp,v,q","ns,nr,brad","x,brad","ns,x,brad,brad","nz,brad,brad","ns,x,n,brad","x,s","j,brad","ns,brad,brad","ns,x,brad","nz,brad","alp,alp,alp,x,brad","ns,brad","alp,alp,alp,n,brad","alp,alp,alp,alp,x,brad","alp,alp,alp,v,brad","alp,alp,alp,alp,alp,alp,alp,alp,alp,brad","x,j","x,brad,brad","nr,brad","alp,alp,alp,brad","nrt,n","x,nr","nz,x","nz,n","alp,alp,alp,alp,alp,brad","ns,x","alp,alp,alp,alp,alp,alp,alp,brad","alp,alp,alp,alp,alp,alp,brad","a,n,brad","ns,n,brad","n,brad","x,x","ns,x,n","alp,alp,alp,alp,brad","alp,alp,alp,alp,x","x,n,brad","x,vn","nr,n","x,n","nr,n,n","n,q","alp,alp,brad","a,x","nrt","n,nz","n,brad,brad","x","n,nr","n,x,brad","a,brad","x,n,n","alp,alp,alp,x","ns,n","m,brad","brad,n,brad","ns,ns","v,ns","brad,x","n,v,brad","n,ns","v,nr","t,n","a,n","v,brad","brad,brad","n,n,brad","x,v","nz","n,x","n,n","brad,v","v,vn","m,n","n,v","n,vn","n,n,n","brad","v,n","d,v","v,v","n")
+order.ctg <- c("l,q,brad","g,nr,brad",
+               "n,e,brad",
+               "nz,ng",
+               "nrt,brad",
+               "ns,x,n,brad,brad",
+               "ns,nr,brad",
+               "x,brad",
+               "ns,x,brad,brad","nz,brad,brad","ns,x,n,brad","x,s","j,brad","ns,brad,brad","ns,x,brad","nz,brad","ns,brad","x,j","x,brad,brad","nr,brad","nrt,n","x,nr","nz,x","nz,n","ns,x","a,n,brad","ns,n,brad","n,brad","x,x","ns,x,n","x,n,brad","x,vn","nr,n","x,n","nr,n,n","n,q","a,x","nrt","n,nz","n,brad,brad","x","n,nr","n,x,brad","a,brad","x,n,n","ns,n","m,brad","brad,n,brad","ns,ns","v,ns","brad,x","n,v,brad","n,ns","v,nr","t,n","a,n","v,brad","brad,brad","n,n,brad","x,v","nz","n,x","n,n","brad,v","v,vn","m,n","n,v","n,vn","n,n,n","brad","v,n","d,v","v,v","n")
+```
+
+```{r import_train_data, include=TRUE, message=FALSE}
+test.data<-read_csv("D:/0Current/An_Introduction_to_Data_Science/New_Names/Round2/raw_statistics/Round2_Test.csv")
+#View(test.data)
+```
+
+```{r initialize_engine;engine.key}
+engine <- worker(type = "tag", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict.utf8")
+```
+
+```{r initialize_train.data.seg.title, include=FALSE}
+test.data.seg.title <- list()
+for (i in 1:nrow(test.data)) {
+  test.data.seg.title[[i]]<- segment(test.data$title[i], engine)
+}
+#View(test.data.seg.title)
+```
+
+```{r initialize_test.data.seg.text, include=FALSE}
+test.data.seg.text <- list()
+for (i in 1:nrow(test.data)) {
+  test.data.seg.text[[i]]<- segment(test.data$text[i],engine)
+}
+#View(test.data.seg.text)
+```
+
+```{r get_from_title;append_is_TRUE, eval=TRUE}
+unknownEntities.list <- list()
+for(i in 1:length(test.data.seg.title)){
+  unknownEntities.list[[i]] <- vector(mode = "character")
+}
+for (ctg in 1:24) {
+  nom <- unlist(strsplit(order.ctg[ctg],","))
+  for(i in 1:length(test.data.seg.title)){
+    len <- length(unknownEntities.list[[i]])
+    k <- 1
+    n <- names(test.data.seg.title[[i]])
+    leng <- length(test.data.seg.title[[i]]) - length(nom) + 1
+    if(leng>=length(nom)){
+      for(j in 1:leng){
+        if(identical(n[j:(j+length(nom)-1)],nom)){
+          unknownEntities.list[[i]][len+k] <- paste(test.data.seg.title[[i]][j:(j+length(nom)-1)], 
+                                                collapse="", 
+                                                sep="")
+          for(u in j:(j+length(nom)-1)){
+            names(test.data.seg.title[[i]])[u] <- "null"
+          }
+          k <- k + 1
+        }
+      }
+    }
+    unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+  }
+}
+#View(unknownEntities.list)
+```
+
+```{r get_from_text;append_is_TRUE, eval=TRUE}
+unknownEntities.list <- list()
+for(i in 1:length(test.data.seg.text)){
+  unknownEntities.list[[i]] <- vector(mode = "character")
+}
+for (ctg in 1:24) {
+  nom <- unlist(strsplit(order.ctg[ctg],","))
+  for(i in 1:length(test.data.seg.text)){
+    len <- length(unknownEntities.list[[i]])
+    k <- 1
+    n <- names(test.data.seg.text[[i]])
+    leng <- length(test.data.seg.text[[i]]) - length(nom) + 1
+    if(leng>=length(nom)){
+      for(j in 1:leng){
+        if(identical(n[j:(j+length(nom)-1)],nom)){
+          unknownEntities.list[[i]][len+k] <- paste(test.data.seg.text[[i]][j:(j+length(nom)-1)], 
+                                      collapse="", 
+                                      sep="")
+          for(u in j:(j+length(nom)-1)){
+            names(test.data.seg.text[[i]])[u] <- "null"
+          }
+          k <- k + 1
+        }
+      }
+    }
+    unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+  }
+}
+View(unknownEntities.list)
+```
+
+```{r eliminate_unwanted_elements, eval=FALSE}
+elimination <- c("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"," ","  ","")
+for(i in 1:length(unknownEntities.list)){
+  for(j in 1:length(unknownEntities.list[[i]])) {
+    if(length(unknownEntities.list[[i]][j])>0){
+      if(!is.na(unknownEntities.list[[i]][j])){
+        if(length(unknownEntities.list[[i]][j])<=2){
+          unknownEntities.list[[i]][j] <- NA
+        }
+      }
+    }
+  }
+}
+for(i in 1:length(unknownEntities.list)){
+  unknownEntities.list[[i]] <- na.omit(unknownEntities.list[[i]])
+}
+#View(unknownEntities.list)
+```
+
+```{r get_rid_of_space}
+for (i in 1:length(unknownEntities.list)) {
+  if(length(unknownEntities.list[[i]])>=1){
+    for(j in 1:length(unknownEntities.list[[i]])) {
+      unknownEntities.list[[i]][j] <- gsub("([ ])", "", unknownEntities.list[[i]][j])
+    }
+    unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+  }
+}
+#View(unknownEntities.list)
+```
+
+```{r fill_blanks_with_NA, eval=TRUE}
+for(i in 1:length(test.data.seg.text)){
+  if(length(unknownEntities.list[[i]])==0){
+    unknownEntities.list[[i]] <- NA
+  }
+}
+#View(unknownEntities.list)
+```
+
+```{r generate_result}
+result <- data.frame(id=character(length = length(unknownEntities.list)), unknownEntities=character(length = length(unknownEntities.list)), stringsAsFactors = FALSE)
+for(i in 1:length(unknownEntities.list)){
+  result$id[i] <- test.data$id[i]
+  if(length(unknownEntities.list[[i]])>1){
+    result$unknownEntities[i] <- paste(unknownEntities.list[[i]],collapse = ";")
+  }
+  else if(length(unknownEntities.list[[i]])==1){
+    result$unknownEntities[i] <- unknownEntities.list[[i]]
+  }
+}
+View(result)
+```
+
+```{r output}
+write.csv(result,"D:/0Current/An_Introduction_to_Data_Science/New_Names/Round2/raw_statistics/R2-final_fight_of_Alan's_algorithm_FINAL.csv",na="")
+```

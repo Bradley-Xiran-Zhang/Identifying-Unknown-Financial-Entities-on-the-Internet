@@ -1,0 +1,476 @@
+---
+title: "output_test_data"
+author: "Bradley Wingxopher Zhang"
+date: "2019/9/21"
+output: html_document
+---
+
+```{r include_libraries, include=FALSE}
+rm(list = ls())
+library(readr)
+library(Rwordseg)
+library(jiebaR)
+library(jiebaRD)
+library(dplyr)
+```
+
+```{r import_test_data, include=TRUE, message=FALSE}
+test.data<-read_csv("Test_Data.csv")
+```
+
+```{r initialize_engine;engine.key}
+engine <- worker(type = "tag", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict.utf8")
+#engine.mp <- worker(type = "mp", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8")
+#engine.key <- worker("keywords", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8",topn=5)
+#engine.hmm <- worker(type = "hmm", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8")
+#engine.simhash <- worker(type = "simhash", user = "D:/1softwares/1program/R/R-3.6.1/library/jiebaRD/dict/user.dict3.utf8", topn = 3)
+```
+
+```{r initialize_test.data.seg.title, include=FALSE}
+test.data.seg.title <- list()
+for (i in 1:nrow(test.data)) {
+  test.data.seg.title[[i]]<- segment(test.data$title[i], engine)
+}
+```
+
+```{r initialize_test.data.seg.text, include=FALSE}
+test.data.seg.text <- list()
+for (i in 1:nrow(test.data)) {
+  test.data.seg.text[[i]]<- segment(test.data$text[i],engine)
+}
+unknownEntities.list <- list()
+#View(test.data.seg.text)
+```
+
+```{r get_nt_from_title, eval=FALSE}
+for(i in 1:length(test.data.seg.title)){
+  k <- 1
+  n <- names(test.data.seg.title[[i]])
+  unknownEntities.list[[i]] <- vector(mode = "character")
+  for(j in 1:length(test.data.seg.title[[i]])){
+    if(n[[j]]=="nt"){
+      unknownEntities.list[[i]][k] <- test.data.seg.title[[i]][j]
+      k <- k + 1
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+```
+
+```{r get_nt_from_text, eval=FALSE}
+for(i in 1:length(test.data.seg.text)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.text[[i]])
+  for(j in 1:length(test.data.seg.text[[i]])){
+    if(n[[j]]=="nt"){
+      unknownEntities.list[[i]][len+k] <- test.data.seg.text[[i]][j]
+      k <- k + 1
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+```
+
+```{r get_x_from_text, eval=FALSE}
+for(i in 1:length(test.data.seg.text)){
+  #if(length(unknownEntities.list[[i]])==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+    l <- freq(test.data.seg.text[[i]][names(test.data.seg.text[[i]])=="x"])
+    l <- l[nchar(l$char)>1,]
+    unknownEntities.list[[i]] <- l$char[which.max(l$freq)]
+  #}
+}
+View(unknownEntities.list)
+```
+
+```{r get_x_from_title, eval=FALSE}
+for(i in 1:length(test.data.seg.title)){
+  if(length(unknownEntities.list[[i]])==0){
+    l <- freq(test.data.seg.title[[i]][names(test.data.seg.title[[i]])=="x"])
+    l <- l[nchar(l$char)>1,]
+    unknownEntities.list[[i]] <- l$char[which.max(l$freq)]
+    #unknownEntities.list[[i]] <- freq(test.data.seg.text[[i]][names(test.data.seg.text[[i]])=="x"])[[1]][which.max(freq(test.data.seg.text[[i]][names(test.data.seg.text[[i]])=="x"])[[2]])]
+  }
+}
+View(unknownEntities.list)
+```
+
+```{r get_(x,brad)_from_text;append_is_TRUE, eval=TRUE}
+for(i in 1:length(test.data.seg.text)){
+  unknownEntities.list[[i]] <- vector(mode = "character")
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.text[[i]])
+  leng <- length(test.data.seg.text[[i]])-1
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="x" & n[[j+1]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.text[[i]][j],test.data.seg.text[[i]][j+1],collapse="",sep="")
+        k <- k + 1
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+```
+
+```{r get_(x,brad)_from_title;append_is_TRUE, eval=TRUE}
+for(i in 1:length(test.data.seg.title)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.title[[i]])
+  leng <- length(test.data.seg.title[[i]])-1
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="x"&n[[j+1]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.title[[i]][j],test.data.seg.title[[i]][j+1],collapse = ",")
+        k <- k + 1
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+```
+
+```{r get_(nrt,brad)_from_text;append_is_TRUE, eval=TRUE}
+#num<-0
+for(i in 1:length(test.data.seg.text)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.text[[i]])
+  leng <- length(test.data.seg.text[[i]])-1
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="nrt" & n[[j+1]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.text[[i]][j],test.data.seg.text[[i]][j+1],collapse="",sep="")
+        k <- k + 1
+        #num<-num+1
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+#View(unknownEntities.list)
+#num
+```
+
+```{r get_(nrt,brad)_from_title;append_is_TRUE, eval=TRUE}
+for(i in 1:length(test.data.seg.title)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.title[[i]])
+  leng <- length(test.data.seg.title[[i]])-1
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="nrt"&n[[j+1]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.title[[i]][j],test.data.seg.title[[i]][j+1],collapse = ",")
+        k <- k + 1
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+```
+
+```{r get_(ns,x,n,brad,brad)_from_text;append_is_TRUE, eval=TRUE}
+num<-vector(mode="integer")
+u<-1
+for(i in 1:length(test.data.seg.text)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.text[[i]])
+  leng <- length(test.data.seg.text[[i]])-4
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="ns"&n[[j+1]]=="x"&n[[j+2]]=="n"&n[[j+3]]=="brad" & n[[j+4]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.text[[i]][j],
+                                                  test.data.seg.text[[i]][j+1],
+                                                  test.data.seg.text[[i]][j+2],
+                                                  test.data.seg.text[[i]][j+3],
+                                                  test.data.seg.text[[i]][j+4],
+                                                  collapse="",sep="")
+        names(test.data.seg.text[[i]])[j] <- "null"
+        names(test.data.seg.text[[i]])[j+1] <- "null"
+        names(test.data.seg.text[[i]])[j+2] <- "null"
+        names(test.data.seg.text[[i]])[j+3] <- "null"
+        names(test.data.seg.text[[i]])[j+4] <- "null"
+        k <- k + 1
+        num[u] <- i
+        num[u+1] <- j
+        u<-u+2
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+num
+```
+
+```{r get_(ns,x,n,brad,brad)_from_title;append_is_TRUE, eval=TRUE}
+num<-vector(mode="integer")
+u<-1
+for(i in 1:length(test.data.seg.title)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.title[[i]])
+  leng <- length(test.data.seg.title[[i]])-4
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="ns" & n[[j+1]]=="x" & n[[j+2]]=="n" & n[[j+3]]=="brad" & n[[j+4]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.title[[i]][j],
+                                                  test.data.seg.title[[i]][j+1],
+                                                  test.data.seg.title[[i]][j+2],
+                                                  test.data.seg.title[[i]][j+3],
+                                                  test.data.seg.title[[i]][j+4],
+                                                  collapse="",sep="")
+        names(test.data.seg.title[[i]])[j] <- "null"
+        names(test.data.seg.title[[i]])[j+1] <- "null"
+        names(test.data.seg.title[[i]])[j+2] <- "null"
+        names(test.data.seg.title[[i]])[j+3] <- "null"
+        names(test.data.seg.title[[i]])[j+4] <- "null"
+        k <- k + 1
+        num[u] <- i
+        num[u+1] <- j
+        u<-u+2
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+num
+```
+
+```{r get_(ns,n,n,brad,brad)_from_text;append_is_TRUE, eval=TRUE}
+num<-vector(mode="integer")
+u<-1
+for(i in 1:length(test.data.seg.text)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.text[[i]])
+  leng <- length(test.data.seg.text[[i]])-4
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="ns"&n[[j+1]]=="n"&n[[j+2]]=="n"&n[[j+3]]=="brad" & n[[j+4]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.text[[i]][j],
+                                                  test.data.seg.text[[i]][j+1],
+                                                  test.data.seg.text[[i]][j+2],
+                                                  test.data.seg.text[[i]][j+3],
+                                                  test.data.seg.text[[i]][j+4],
+                                                  collapse="",sep="")
+        names(test.data.seg.text[[i]])[j] <- "null"
+        names(test.data.seg.text[[i]])[j+1] <- "null"
+        names(test.data.seg.text[[i]])[j+2] <- "null"
+        names(test.data.seg.text[[i]])[j+3] <- "null"
+        names(test.data.seg.text[[i]])[j+4] <- "null"
+        k <- k + 1
+        num[u] <- i
+        num[u+1] <- j
+        u<-u+2
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+num
+```
+
+```{r get_(ns,n,n,brad,brad)_from_title;append_is_TRUE, eval=TRUE}
+num<-vector(mode="integer")
+u<-1
+for(i in 1:length(test.data.seg.title)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.title[[i]])
+  leng <- length(test.data.seg.title[[i]])-4
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="ns" & n[[j+1]]=="n" & n[[j+2]]=="n" & n[[j+3]]=="brad" & n[[j+4]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.title[[i]][j],
+                                                  test.data.seg.title[[i]][j+1],
+                                                  test.data.seg.title[[i]][j+2],
+                                                  test.data.seg.title[[i]][j+3],
+                                                  test.data.seg.title[[i]][j+4],
+                                                  collapse="",sep="")
+        names(test.data.seg.title[[i]])[j] <- "null"
+        names(test.data.seg.title[[i]])[j+1] <- "null"
+        names(test.data.seg.title[[i]])[j+2] <- "null"
+        names(test.data.seg.title[[i]])[j+3] <- "null"
+        names(test.data.seg.title[[i]])[j+4] <- "null"
+        k <- k + 1
+        num[u] <- i
+        num[u+1] <- j
+        u<-u+2
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+num
+```
+
+```{r get_(ns,x,n,brad)_from_text;append_is_TRUE, eval=TRUE}
+num<-vector(mode="integer")
+u<-1
+for(i in 1:length(test.data.seg.text)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.text[[i]])
+  leng <- length(test.data.seg.text[[i]])-3
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="ns" & n[[j+1]]=="x" & n[[j+2]]=="n" & n[[j+3]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.text[[i]][j],
+                                                  test.data.seg.text[[i]][j+1],
+                                                  test.data.seg.text[[i]][j+2],
+                                                  test.data.seg.text[[i]][j+3],
+                                                  collapse="",sep="")
+        names(test.data.seg.text[[i]])[j] <- "null"
+        names(test.data.seg.text[[i]])[j+1] <- "null"
+        names(test.data.seg.text[[i]])[j+2] <- "null"
+        names(test.data.seg.text[[i]])[j+3] <- "null"
+        k <- k + 1
+        num[u] <- i
+        num[u+1] <- j
+        u<-u+2
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+num
+```
+
+```{r get_(ns,x,n,brad)_from_title;append_is_TRUE, eval=TRUE}
+num<-vector(mode="integer")
+u<-1
+for(i in 1:length(test.data.seg.title)){
+  len <- length(unknownEntities.list[[i]])
+  k <- 1
+  if(len==0){
+    unknownEntities.list[[i]] <- vector(mode = "character")
+  }
+  n <- names(test.data.seg.title[[i]])
+  leng <- length(test.data.seg.title[[i]])-3
+  if(leng>=2){
+    for(j in 1:leng){
+      if(n[[j]]=="ns" & n[[j+1]]=="x" & n[[j+2]]=="n" & n[[j+3]]=="brad"){
+        unknownEntities.list[[i]][len+k] <- paste(test.data.seg.title[[i]][j],
+                                                  test.data.seg.title[[i]][j+1],
+                                                  test.data.seg.title[[i]][j+2],
+                                                  test.data.seg.title[[i]][j+3],
+                                                  collapse="",sep="")
+        names(test.data.seg.title[[i]])[j] <- "null"
+        names(test.data.seg.title[[i]])[j+1] <- "null"
+        names(test.data.seg.title[[i]])[j+2] <- "null"
+        names(test.data.seg.title[[i]])[j+3] <- "null"
+        k <- k + 1
+        num[u] <- i
+        num[u+1] <- j
+        u<-u+2
+      }
+    }
+  }
+  unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+num
+```
+
+```{r eliminate_unwanted_elements, eval=FALSE}
+elimination <- c("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"," ","  ","")
+for(i in 1:length(unknownEntities.list)){
+  for(j in 1:length(unknownEntities.list[[i]])) {
+    if(length(unknownEntities.list[[i]][j])>0){
+      if(!is.na(unknownEntities.list[[i]][j])){
+        if(length(unknownEntities.list[[i]][j])<=2){
+          unknownEntities.list[[i]][j] <- NA
+        }
+      }
+    }
+  }
+}
+for(i in 1:length(unknownEntities.list)){
+  unknownEntities.list[[i]] <- na.omit(unknownEntities.list[[i]])
+}
+View(unknownEntities.list)
+```
+
+```{r get_rid_of_space}
+for (i in 1:length(unknownEntities.list)) {
+  if(length(unknownEntities.list[[i]])>=1){
+    for(j in 1:length(unknownEntities.list[[i]])) {
+      unknownEntities.list[[i]][j] <- gsub("([ ])", "", unknownEntities.list[[i]][j])
+    }
+    unknownEntities.list[[i]] <- unique(unknownEntities.list[[i]])
+  }
+}
+View(unknownEntities.list)
+```
+
+```{r fill_blanks_with_NA, eval=TRUE}
+for(i in 1:length(test.data.seg.text)){
+  if(length(unknownEntities.list[[i]])==0){
+    unknownEntities.list[[i]] <- NA
+  }
+}
+View(unknownEntities.list)
+```
+
+```{r generate_result}
+result <- data.frame(id=character(length = length(unknownEntities.list)), unknownEntities=character(length = length(unknownEntities.list)), stringsAsFactors = FALSE)
+for(i in 1:length(unknownEntities.list)){
+  result$id[i] <- test.data$id[i]
+  if(length(unknownEntities.list[[i]])>1){
+    result$unknownEntities[i] <- paste(unknownEntities.list[[i]],collapse = ";")
+  }
+  else if(length(unknownEntities.list[[i]])==1){
+    result$unknownEntities[i] <- unknownEntities.list[[i]]
+  }
+}
+View(result)
+```
+
+```{r output}
+write.csv(result,"Submit_Data_2019_9_25_II.csv",na="")
+```
